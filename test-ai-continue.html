@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI续写功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        textarea {
+            height: 200px;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+        .style-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .style-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .style-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .style-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .result-content {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            font-size: 15px;
+        }
+        .action-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 12px;
+        }
+        .action-btn:hover {
+            background: #38a169;
+        }
+        .clear-btn {
+            background: #e53e3e;
+        }
+        .clear-btn:hover {
+            background: #c53030;
+        }
+        .loading {
+            color: #667eea;
+            font-style: italic;
+        }
+        .success-badge {
+            background: #48bb78;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .fallback-badge {
+            background: #ed8936;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .demo-content {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🤖 AI续写功能测试</h1>
+        
+        <div class="demo-content">
+            <h3>💡 使用说明</h3>
+            <p>1. 在下方输入一些文本内容</p>
+            <p>2. 选择作品类型和续写风格</p>
+            <p>3. 点击对应的续写按钮获取AI建议</p>
+            <p>4. 可以将续写内容应用到原文中</p>
+        </div>
+        
+        <form id="continueForm">
+            <div class="form-group">
+                <label for="title">作品标题 (可选):</label>
+                <input type="text" id="title" placeholder="例如：樱花飘落的午后">
+            </div>
+            
+            <div class="form-group">
+                <label for="type">作品类型:</label>
+                <select id="type" required>
+                    <option value="小说">📖 小说</option>
+                    <option value="短篇">📝 短篇</option>
+                    <option value="文案">💭 文案</option>
+                    <option value="设定">⚙️ 设定</option>
+                    <option value="对话">💬 对话</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="content">已有内容:</label>
+                <textarea id="content" required placeholder="在这里输入你已经写好的内容...
+
+例如：
+夕阳西下，金色的光芒洒在古老的石桥上。小雨轻柔地拿着一把油纸伞，缓缓走过桥面。她的心中满怀着对未来的憧憬，却又带着一丝不安..."></textarea>
+            </div>
+        </form>
+        
+        <div class="style-buttons">
+            <button class="style-btn" onclick="generateContinuation('continue')" id="btn-continue">
+                📝 自然续写
+            </button>
+            <button class="style-btn" onclick="generateContinuation('expand')" id="btn-expand">
+                🔍 扩展描写
+            </button>
+            <button class="style-btn" onclick="generateContinuation('dialogue')" id="btn-dialogue">
+                💬 添加对话
+            </button>
+            <button class="style-btn" onclick="generateContinuation('action')" id="btn-action">
+                ⚡ 动作场面
+            </button>
+            <button class="style-btn" onclick="generateContinuation('emotion')" id="btn-emotion">
+                💝 情感描写
+            </button>
+        </div>
+        
+        <div id="resultSection" class="result-section" style="display: none;">
+            <div class="result-header">
+                <h3 id="resultTitle">🤖 AI续写结果</h3>
+                <div>
+                    <button class="action-btn" onclick="applyResult()">✅ 应用到原文</button>
+                    <button class="action-btn clear-btn" onclick="clearResult()">❌ 清除结果</button>
+                </div>
+            </div>
+            <div id="resultContent" class="result-content"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001/api';
+        let currentResult = '';
+        let isLoading = false;
+
+        async function generateContinuation(style) {
+            if (isLoading) return;
+            
+            const content = document.getElementById('content').value.trim();
+            const type = document.getElementById('type').value;
+            const title = document.getElementById('title').value.trim();
+            
+            if (!content) {
+                alert('请先输入一些内容');
+                return;
+            }
+            
+            isLoading = true;
+            updateButtonStates(true);
+            
+            const resultSection = document.getElementById('resultSection');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultSection.style.display = 'block';
+            resultTitle.innerHTML = '🤖 AI续写结果 <span class="loading">生成中...</span>';
+            resultContent.textContent = '正在生成续写内容，请稍候...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/ai/continue`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        type: type,
+                        title: title,
+                        style: style
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                currentResult = result.continuation;
+                
+                const styleNames = {
+                    continue: '自然续写',
+                    expand: '扩展描写',
+                    dialogue: '添加对话',
+                    action: '动作场面',
+                    emotion: '情感描写'
+                };
+                
+                const badge = result.success ? 
+                    '<span class="success-badge">AI生成</span>' : 
+                    '<span class="fallback-badge">备用内容</span>';
+                
+                resultTitle.innerHTML = `🤖 AI续写结果 - ${styleNames[style]}${badge}`;
+                resultContent.textContent = result.continuation;
+                
+            } catch (error) {
+                console.error('AI续写失败:', error);
+                resultTitle.innerHTML = '🤖 AI续写结果 <span style="color: #e53e3e;">生成失败</span>';
+                resultContent.textContent = '续写生成失败: ' + error.message;
+                currentResult = '';
+            } finally {
+                isLoading = false;
+                updateButtonStates(false);
+            }
+        }
+
+        function updateButtonStates(loading) {
+            const buttons = document.querySelectorAll('.style-btn');
+            buttons.forEach(btn => {
+                btn.disabled = loading;
+                if (loading) {
+                    btn.innerHTML = btn.innerHTML.replace(/^[^\s]+/, '⏳');
+                } else {
+                    // 恢复原始图标
+                    const originalIcons = {
+                        'btn-continue': '📝',
+                        'btn-expand': '🔍',
+                        'btn-dialogue': '💬',
+                        'btn-action': '⚡',
+                        'btn-emotion': '💝'
+                    };
+                    const icon = originalIcons[btn.id];
+                    if (icon) {
+                        btn.innerHTML = btn.innerHTML.replace(/^[^\s]+/, icon);
+                    }
+                }
+            });
+        }
+
+        function applyResult() {
+            if (!currentResult) {
+                alert('没有可应用的续写内容');
+                return;
+            }
+            
+            const contentTextarea = document.getElementById('content');
+            contentTextarea.value += '\n\n' + currentResult;
+            
+            alert('续写内容已应用到原文！');
+            clearResult();
+        }
+
+        function clearResult() {
+            document.getElementById('resultSection').style.display = 'none';
+            currentResult = '';
+        }
+
+        // 页面加载时的提示
+        window.onload = function() {
+            console.log('AI续写功能测试页面已加载');
+            console.log('请确保后端服务器运行在 http://localhost:3001');
+        };
+    </script>
+</body>
+</html>
