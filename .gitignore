@@ -31,8 +31,9 @@ coverage
 
 # 后端相关
 server/node_modules/
-server/data/
-server/uploads/
+server/data/*.json
+server/uploads/*
+!server/uploads/.gitkeep
 
 # 测试文件
 test-*.js
