@@ -182,7 +182,7 @@
         <p>加载中...</p>
       </div>
 
-      <div v-else-if="works.length === 0" class="empty-state">
+      <div v-else-if="!works || works.length === 0" class="empty-state">
         <div class="empty-icon">📝</div>
         <h3>还没有文章</h3>
         <p>点击上方"写新文章"按钮开始你的创作之旅吧！</p>
@@ -347,7 +347,7 @@ const loadWorks = async () => {
     loading.value = true
     error.value = ''
     const response = await apiService.getWorks()
-    works.value = response.works
+    works.value = response.works || []
   } catch (err) {
     error.value = '加载作品失败'
     console.error('加载作品失败:', err)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import WritingPortfolio from './components/WritingPortfolio.vue'
 import CharacterGallery from './components/CharacterGallery.vue'
 import StoryArchive from './components/StoryArchive.vue'
@@ -17,6 +17,20 @@ const stats = ref({
 })
 
 const activities = ref<any[]>([])
+
+// 监听activeTab变化，防止游客访问受限页面
+watch(activeTab, (newTab) => {
+  if (!isAdmin.value && (newTab === 'characters' || newTab === 'archive')) {
+    activeTab.value = 'portfolio'
+  }
+})
+
+// 监听登录状态变化，登出时重定向到作品集
+watch(isAdmin, (newIsAdmin) => {
+  if (!newIsAdmin && (activeTab.value === 'characters' || activeTab.value === 'archive')) {
+    activeTab.value = 'portfolio'
+  }
+})
 
 // 检查登录状态
 onMounted(async () => {
@@ -155,6 +169,7 @@ const getActivityIcon = (type: string) => {
             <span>作品集</span>
           </a>
           <a
+            v-if="isAdmin"
             href="#"
             :class="['nav-link', { active: activeTab === 'characters' }]"
             @click.prevent="activeTab = 'characters'"
@@ -163,6 +178,7 @@ const getActivityIcon = (type: string) => {
             <span>角色库</span>
           </a>
           <a
+            v-if="isAdmin"
             href="#"
             :class="['nav-link', { active: activeTab === 'archive' }]"
             @click.prevent="activeTab = 'archive'"
@@ -264,8 +280,8 @@ const getActivityIcon = (type: string) => {
             :is-admin="isAdmin"
             @stats-updated="refreshData"
           />
-          <CharacterGallery v-if="activeTab === 'characters'" />
-          <StoryArchive v-if="activeTab === 'archive'" />
+          <CharacterGallery v-if="activeTab === 'characters'" :is-admin="isAdmin" />
+          <StoryArchive v-if="activeTab === 'archive'" :is-admin="isAdmin" />
         </section>
       </div>
     </main>

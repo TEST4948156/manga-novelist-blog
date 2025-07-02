@@ -1,0 +1,14 @@
+# 忽略源码文件，只部署构建后的文件
+src/
+node_modules/
+.git/
+.vscode/
+.idea/
+*.log
+.env*
+test-*
+README.md
+tsconfig.json
+vite.config.ts
+package-lock.json
+yarn.lock

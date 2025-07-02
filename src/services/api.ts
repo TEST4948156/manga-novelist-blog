@@ -1,6 +1,5 @@
 // API服务配置
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // AI评价接口类型定义
 export interface AIEvaluation {
@@ -130,27 +129,38 @@ class ApiService {
 
   // 创建作品
   async createWork(data: CreateWorkData): Promise<Work> {
-    const formData = new FormData();
-    formData.append('title', data.title);
-    formData.append('type', data.type);
-    formData.append('content', data.content);
-    formData.append('tags', data.tags);
-    
+    // 如果有文件，使用 FormData，否则使用 JSON
     if (data.file) {
+      const formData = new FormData();
+      formData.append('title', data.title);
+      formData.append('type', data.type);
+      formData.append('content', data.content);
+      formData.append('tags', data.tags);
       formData.append('file', data.file);
+
+      const response = await fetch(`${API_BASE_URL}/works`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } else {
+      // 使用 JSON 格式
+      return this.request<Work>('/works', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: data.title,
+          type: data.type,
+          content: data.content,
+          tags: data.tags
+        })
+      });
     }
-
-    const response = await fetch(`${API_BASE_URL}/works`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
   }
 
   // 更新作品
